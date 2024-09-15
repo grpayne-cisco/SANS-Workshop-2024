@@ -7,8 +7,8 @@ resource "aws_db_instance" "my_db" {
   #password          = "my_super_secret_password"
   manage_master_user_password = true
   storage_encrypted = true
-  #tags = {
-  #  data_classification = "public"
-  #  owner_email = "admin@mydomain.com"
-  #}
+  tags = {
+    data_classification = "public"
+    owner_email = "admin@mydomain.com"
+  }
 }
