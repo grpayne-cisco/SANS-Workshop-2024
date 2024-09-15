@@ -6,7 +6,7 @@ import future.keywords.in
 
 import input
 
-deny_alwayspass contains {
+deny_rdspassword contains {
     "msg": "RDS should not specify passwords",
     "details": {
         "rds_with_password": rds_with_password
