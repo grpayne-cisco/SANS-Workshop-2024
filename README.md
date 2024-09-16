@@ -11,41 +11,31 @@
 * Installed locally: Conftest
 * Installed locally: Terraform
 
+##  Debugging with GitHub Actions
+In our simulated scenario, GitHub actions is our CI tool and also provides the gating for our OPA rules. It runs a containerized environment that executes the terraform plans and OPA validations. Using this we can both gate our work flow as well as test our changes without the need for specific tooling on our local machine.
+
+We will walkthrough this process in the [Setup](#setup) and [Exercise 1 - Github Actions and a Failing Pipeline](#exercise-1---github-actions-and-a-failing-pipeline)
 
 ## Local Debugging
+If you want to debug on your local machine, instead of just leveraging  github actions, there are two options:
+* (Recommended) [Use the simulated containerized environment](demo-env/README.md)
+* [Setup the each of the tools on your machine and connect to an AWS account](local-debugginf.md)
 
-### Conftest and Terraform
-_This will require a AWS account to test against or localstack running._
-
-### Containerized Environment
-
-#### Starting the debugging Environment 
-1. Open a command prompt or terminal in the demo-env directory.
-2. Run ```docker-compose up``` or ```podman compose up```. If this is the first time you are starting the containers it may take a little time for it to download everything and start. 
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-This starts 2 containers: 
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  a) confest/terraform debugging environment <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; b) a localstack environment that simulates an AWS account.
-
-3. In a new terminal type ```docker exec -it demo-env-runtime-1 bash``` or ```podman exec -it demo-env-runtime-1 bash```. This will open a shell in our debugging environment.
-   
-NOTE : _The working directory in the container is workspace_
-
-#### Creating terraform output files
-
+### Creating terraform output files
+_Note: If you are running locally against a real AWS account replace tflocal with terraform_
 1. Enter the terraform directory containing the terraform you are working with, for example run: ```cd /workspace/terraform/rds``` or ```cd /workspace/terraform/s3```
 2. Run ```tflocal init``` to initialize terraform. _If you are familar with terraform you will notice we are using tflocal instead of terraform. This is to leverage localstack to simulate our AWS account_
 3. Run ```tflocal plan --out tfplan.binary``` to create a plan for the terraform file and output it as a binary.
 4. Run ```tflocal show -json tfplan.binary > tfplan.json``` to generate the json terraform output the we will evaluate with OPA.
 
 
-#### Options to formatting the json output:
-The output of the tflocal show will not have whitepace formatting, making it hard to read, you can use one of the following options to format the code:
+### Options to formatting the json output:
+The output of the tflocal/terraform show will not have whitepace formatting, making it hard to read, you can use one of the following options to format the code:
 - IDEs like VSCode you can right click and select Format and the document will be formatted
 - If you have jq installed you can run: ```jq . tfplan.json > tfplan-pretty.json```
 - You can paste the JSON into this website and have it formatted for you (in a real world scenario the terraform output could have sensitive data in it and this is not recommended): https://jsonformatter.org/
 
-#### Evaluating our terraform plan output
+### Evaluating our terraform plan output
 We use conftest to evaluate our terraform output against our policies.
 
 From the folder where the terraform output was created, run: 
@@ -75,11 +65,6 @@ Example:
         }
 ]
 ```
-
-##  Debugging with GitHub Actions
-In our simulated scenario, GitHub actions is our CI tool and also provides the gating for our OPA rules. It runs a containerized environment that executes the terraform plans and OPA validations. Using this we can both gate our work flow as well as test our changes without the need for specific tooling on our local machine.
-
-We will walkthrough this process in the [Setup](#setup) and [Exercise 1 - Github Actions and a Failing Pipeline](#exercise-1---github-actions-and-a-failing-pipeline)
 
 ## Reference Materials
 - [OPA Overview](https://www.openpolicyagent.org/docs/latest/#rego)
@@ -209,111 +194,3 @@ Links:
 * Why do we do we evaluate the plan vs the terraform directly? Although our examples are very simple, terraform can get complex with levels of indirection through the use of multiple files and modules. The plan is the evaluation of all that combine and gives us a single file for evaluation.
 * My trace statements are not printing, why? Make sure you are not specifying an output, like ```--output json```, since this will suppress printed messages or trace statements.
 * My tests are passing when they should fail, why? OPA evaluation will silently fail if it gets a null reference. Try using a print statement (```print(<VARIABLE>```)) of what you are evaluating to see what is being checked.
-
-
-
-
----- 
-
-# Previous readme
-
-This Repository contains Open Agent Policy(OPA) which is an open source, general-purpose policy engine that enables unified, context-aware policy enforcement across the entire environment.
-Ths repository will enable fine-grained, logic-based policy decisions that can be extended to source external information to make decisions. This repository will be use for training purposes, it 
-contain the creation of the OPA Policy as Code for the participants at the SANS CloudSecNext Summit 2024. 
-
-OPA ensures the first time a Terraform code is deployed its in the best possible security state and allows track teams and development pipelines to work quickly without delay and ensure the code is as secure as possible the first time.
-
-# Using Conftest
-[Conftest](https://www.conftest.dev/) is a utility to help you write tests against structured configuration data. Here are some of the commands to use conftest.
-
-> **Conftest will be used to verify the input json (for e.g. terraform plan) to validate the configuration against the rules. All rules must be starting with warn_<rule_name> (for advisory policy) and deny_<rule_name> for the mandatory policy.**
-
-*Always add metadata to the rules before pushing to this repo ([example](https://github.com/terraform-opa-governance/blob/main/aws/kms/kms_key_deletion_window_30_days/kms_key_deletion_window_30_days.rego#L9-L29))*
-
-Below are some of the reference commands:-
-
-To [install conftest](https://www.conftest.dev/install/):-
-```bash
-brew install conftest
-```
-
-To format the files:-
-```bash
-conftest fmt <PATH>
-```
-
-To verify the policy:-
-```bash
-conftest test --all-namespaces <PATH_TO_PASS_OR_FAIL_JSON_File>
-```
-
-To run the policy tests (this will check all the *_test.rego files for tests):-
-```bash
-conftest verify <path-to-root-directory> --report notes
-```
-
-## Generating Terraform JSON Output
-
-```bash
-terraform init
-terraform plan --out tfplan.binary
-terraform show -json tfplan.binary > tfplan.json
-```
-
-## OPA Policy Folder Structure
-
-The file and directory structure within this repository has been designed to have
-a ROOT directory and then it goes to the basic level of Policy, Cloud Provider Name
-category and then finally policy and the name of the policy.
-OPA Policies are configured to the two enforcement levels of deny and warn which gives the
-flexibility to ensure we can remove and update policies in real-time with no
-interruption of services or deployments within the CX Organization.
-
-```ruby
-.
-└── ROOT - DIR
-    └── aws - DIR
-        └── service_name - DIR
-            └── policy_name - DIR
-                └── policy.rego - file
-                └── policy_test.rego - file
-    └── cloud_agnostics - DIR
-        └── policy_name - DIR
-                └── policy.rego - file
-                └── policy_test.rego - file
-    └── common-functions - DIR
-        └── function_name - DIR
-                └── policy.rego - file
-                └── policy_test.rego - file
-    └── runon - DIR
-    └── tfc - DIR        
-```
-
-## OPA Policy Package Structure
-Package name follows the folder path, for example AWS KMS key policy "enable_kms_key_rotation.rego" package would be--> package aws.kms.enable_kms_key_rotation  (similar to folder structure aws->kms->enable_kms_key_rotation) and for test it would be package aws.kms.enable_kms_key_rotation_test
-
-Policy package name for AWS:
-```rego
-package aws.SERVICE_NAME.POLICY_NAME
-
-e.g. for AWS KMS key policy "enable_kms_key_rotation.rego" package would be--> package aws.kms.enable_kms_key_rotation
-```
-
-Test package name for AWS:
-```rego
-package aws.SERVICE_NAME.POLICY_NAME_test
-
-e.g. for AWS KMS key policy test "enable_kms_key_rotation_test.rego" package would be--> package aws.kms.enable_kms_key_rotation_test
-```
-### Pre-commit hooks
-
-Install the pre-commit hooks, this gives you quick feedback about the quality of your code. More information [here](https://pre-commit.com/#quick-start), and the `.pre-commit-config.yaml` in the repository root contains information about the specific checks that are enabled.
-
-You can see the configuration for the module pre-commit hooks [here](./.pre-commit-config.yaml)
-
-### Dependabot
-
-Dependabot configuration can be found [here](./.github/dependabot.yml), you **MUST** define each directory that has code you wish to scan e.g. each terraform directory or if you have multiple other directories with say Python or Node, these will need configuring too.
-
-## External Resources
-
