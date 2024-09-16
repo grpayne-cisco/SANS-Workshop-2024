@@ -48,7 +48,8 @@ The output of the tflocal show will not have whitepace formatting, making it har
 #### Evaluating our terraform plan output
 We use conftest to evaluate our terraform output against our policies.
 
-From the folder where the terraform output was created, run: ```conftest test --all-namespaces -p /workspace/policies tfplan.json --output json```
+From the folder where the terraform output was created, run: 
+* For JSON output: ```conftest test --all-namespaces -p /workspace/policies tfplan.json --output json```
 
 It will output if the policies that are written are successful or fail.
 
@@ -112,9 +113,14 @@ In this exercise we want to trigger Github Actions to run our OPA checks, see th
 4. Open the repo in a browser and browse to your PR
 5. Open the link to the failing action _Run OPA Tests - rds_
 6. Under the failing Validate OPA step expand the Testing 'tfplan.json' against 2 policies in namespace 'aws.validation' section. What is the error?
-7. Open the terraform for the RDS in terraform/rds/main.tf and fix the problem (hint there is a comment that )
+7. Open the terraform for the RDS in terraform/rds/main.tf and fix the problem
 8. Commit and push the code
 9. The OPA checks should succeed now.
+
+<details>
+<summary>Hint</summary>
+The fix is commented out in terraform/rds/main.tf.
+</details>
 
 ### Exercise 2 - Enforce Encryption of RDS
 In this exercise we want to ensure our databases are encrypted.
@@ -132,19 +138,22 @@ In this exercise we want to ensure all our resources have proper tags.
 3. Evaluate the difference in the plan outputs. 
 4. Write a policy in the policies folder that requires a data_classification and owner_email tag.
 
-Hint:
+<details>
+<summary>Hint</summary>
 
->! Undefined or null references will cause the expression block to halt and ext immediately. If you have checks for null, break them up into multiple expressions, wrap in functions, or use a combination of ```is_object(resource)``` and  ```contains_element(object.keys(resource), "KEY")```
-
+Undefined or null references will cause the expression block to halt and ext immediately. If you have checks for null, break them up into multiple expressions, wrap in functions, or use a combination of ```is_object(resource)``` and  ```contains_element(object.keys(resource), "KEY")```
+</details>
+<p>
 
 _Bonus_ - Have you validated the tagging values? Making sure people are providing good data is important for resource tagging. Ensure that the values are constrained to:
 * data_classification is either public or private
 * owner_email is a valid email address. 
 
-Hint: 
->! Rego supports regex expressions to do the email validation: https://docs.styra.com/opa/rego-by-example/builtins/regex
-
-
+<details>
+<summary>Hint</summary>
+Rego supports regex expressions to do the email validation: https://docs.styra.com/opa/rego-by-example/builtins/regex
+</details>
+<p>
 
 _Bonus_ - Some AWS resources do not support tags, for example [Security Hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/securityhub_account). What will happen when your policy evaluates the terraform plan for Security Hub? You can uncomment out the terraform for Security Hub in terraform/securityhub and run an plan (or look in testfiles/aws/securityhub). Will your policy need to be updated to cover this case?
 
@@ -156,19 +165,29 @@ In the exercise 2 we ensured our RDS instances were encrypted, but that may not 
 3. Evaluate the difference in the plan outputs. 
 4. Update the policy in the policies/rds folder that you wrote in Exercise 3
 
-Hint:
+<details>
+<summary>Hint</summary>
 
->! You can chain multiple checks together on multiple lines (in a rule body), and they evaluate with and.
+You can chain multiple checks together on multiple lines (in a rule body), and they evaluate with and.
+</details>
+<p>
+<details>
+<summary>Hint 2</summary>
 
-Hint 2:
+There is no intrinsic or in rego, but if you have 2 boolean expressions that are assigned to the same value they will use an or for the assignment. [How to express OR in Rego](https://www.styra.com/blog/how-to-express-or-in-rego/)
+</details>
+<p>
+<details>
+<summary>Hint 3</summary>
 
->! There is no intrinsic or in rego, but if you have 2 boolean expressions that are assigned to the same value they will use an or for the assignment. [How to express OR in Rego](https://www.styra.com/blog/how-to-express-or-in-rego/)
+If you need to nest an and within an or, try putting use a function to wrap the and statement [Functions](https://www.openpolicyagent.org/docs/latest/policy-language/#functions)
+</details>
+<p>
+<details>
+<summary>Hint 4</summary>
 
-Hint 3: 
->! If you need to nest an and within an or, try putting use a function to wrap the and statement [Functions](https://www.openpolicyagent.org/docs/latest/policy-language/#functions)
-
-Hint 4
->! If you want a function to have a default value if the evaluation fails, you can add a default value, like  ``` funcName(args) if { LOGIC} else := false```
+If you want a function to have a default value if the evaluation fails, you can add a default value, like  ``` funcName(args) if { LOGIC} else := false```
+</details>
 
 ### Bonus
 By default new buckets don't allow public access. We can use the terraform resource [s3_bucket_public_access_block](https://registry.terraform.io/providers/hashicorp/aws/3.24.1/docs/resources/s3_bucket_public_access_block) to allow a bucket to be public (also plan is in testfiles/aws/s3/allow-public).
