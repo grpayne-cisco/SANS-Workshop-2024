@@ -185,10 +185,9 @@ Repository Setup:
 * This is just a sample project. Typically the OPA Policies and the terraform would live in separate repositories so the policies can be shared across multiple terraform repos.
 
 Things to think about:
-* Warn vs deny
-* Better messaging for errors
+* When to use warn vs deny vs violation - You can prefix your policy names based on how you want conftest to handle failures. Think about the behavior you want when you are writing the policies. [Read more here](https://www.conftest.dev/)
+* Better messaging for errors - Make your error messages as descriptive as possible to help developers understand why the policy is failing.
 
-Links: 
 
 ## Questions
 * Why do we do we evaluate the plan vs the terraform directly? Although our examples are very simple, terraform can get complex with levels of indirection through the use of multiple files and modules. The plan is the evaluation of all that combine and gives us a single file for evaluation.
