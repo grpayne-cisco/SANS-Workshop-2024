@@ -1,4 +1,4 @@
-# SANS CloudSecNext Summit 2024 - Workshop
+# SANS CloudSecNext Summit 2024 - Security Configuration Management in the Cloud: Policy as Code for CI/CD Gating
 
 ## Prerequisites 
 **Required**
@@ -11,12 +11,15 @@
 * Installed locally: Conftest
 * Installed locally: Terraform
 
-##  Debugging with GitHub Actions
+##  Development with GitHub Actions
 In our simulated scenario, GitHub actions is our CI tool and also provides the gating for our OPA rules. It runs a containerized environment that executes the terraform plans and OPA validations. Using this we can both gate our work flow as well as test our changes without the need for specific tooling on our local machine.
 
 We will walkthrough this process in the [Setup](#setup) and [Exercise 1 - Github Actions and a Failing Pipeline](#exercise-1---github-actions-and-a-failing-pipeline)
 
-## Local Debugging
+## Development with Rego Playground
+You can use the [Rego Playground](https://play.openpolicyagent.org/) to do virtual development. You can copy the terraform plan outputs into the input section and work on the policy in the coding section. The rego output is displayed in the outputs and any print statements you have will should up in the browser's developer console.
+
+## Local Development
 If you want to debug on your local machine, instead of just leveraging  github actions, there are two options:
 * (Recommended) [Use the simulated containerized environment](demo-env/README.md)
 * [Setup the each of the tools on your machine and connect to an AWS account](local-debugginf.md)
@@ -76,10 +79,16 @@ Example:
 We will do the [Setup](#setup), [Review the Pipeline](#review-the-pipeline), [Review an OPA Policy](#review-an-opa-policy) and [Exercise 1](#exercise-1---github-actions-and-a-failing-pipeline) as a group. The remainder will be done independently.
 
 ### Setup
-1. Fork the repo into your own account (this will allow you to use the github runners)
-2. Checkout the repo to your local machine
-3. Create a branch work from
-4. Open your code in you preferred IDE
+1. Fork the repo into your own account (this will allow you to use the github runners). This can be done using the fork button at the top of the repository page.
+2. Clone the repo to your local machine using your preferred method. From a command prompt ```git clone https://github.com/<YOUR_GITHUB_ID>/SANS-Workshop-2024.git```
+3. Create a branch work from using your preferred method. From a command prompt ```git checkout -b workshop```
+4. Open your code in you preferred IDE.
+5. Create a sample commit and push the code up to the repository using your preferred method. From a command prompt ```git add .; git commit -m'sample commit; git push --set-upstream origin workshop' 
+6. Open up the browser to your forked version of the code (https://github.com/<YOUR_GITHUB_ID>/SANS-Workshop-2024).
+7. Click "Pull Requests". Then "New pull request"
+8. Select the destination to be your version of the repository and the main branch, and your version of the repository and your new branch.
+9. Open the Pull Request, and look for "Continuous integration has not been set up" and select "GitHub Actions".
+10. Enable Actions on the action tab, can be moved up probably.
 
 ### Review the pipeline
 Github actions defines it's pipeline in .github/workflows/ci.yml. Lets take a look at the steps it performs to do validation of the planned Terraform.
