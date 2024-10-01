@@ -1,5 +1,5 @@
 # SANS CloudSecNext Summit 2024 - Security Configuration Management in the Cloud: Policy as Code for CI/CD Gating
-
+...
 Welcome to our hands-on workshop, we are excited to have you join us for an engaging and informative session where you'll learn how to integrate Open Policy Agent (OPA) with GitHub Actions to enforce policy-as-code using Terraform as an example.
 
 As organizations increasingly adopt Infrastructure as Code (IaC) practices, ensuring that infrastructure configurations are compliant with security and governance policies becomes crucial. Open Policy Agent (OPA) is a powerful, open-source policy engine that allows you to define and enforce policies across your infrastructure. 
