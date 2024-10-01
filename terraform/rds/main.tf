@@ -4,7 +4,7 @@ resource "aws_db_instance" "my_db" {
   engine_version    = "5.7"
   instance_class    = "db.t3.micro"
   username          = "root"
-  password          = ""
+  # password          = ""
   #manage_master_user_password = true
   storage_encrypted = false
   #tags = {
